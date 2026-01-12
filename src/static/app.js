@@ -20,12 +20,64 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const spotsLeft = details.max_participants - details.participants.length;
 
+        // existing top-level info for the activity
         activityCard.innerHTML = `
           <h4>${name}</h4>
           <p>${details.description}</p>
           <p><strong>Schedule:</strong> ${details.schedule}</p>
           <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
         `;
+
+        // participants section (header + list or empty message)
+        const participantsDiv = document.createElement("div");
+        participantsDiv.className = "participants";
+
+        const header = document.createElement("h5");
+        header.textContent = `Participants (${details.participants.length})`;
+        participantsDiv.appendChild(header);
+
+        if (!details.participants || details.participants.length === 0) {
+          const empty = document.createElement("div");
+          empty.className = "participant-empty";
+          empty.textContent = "No participants yet";
+          participantsDiv.appendChild(empty);
+        } else {
+          const ul = document.createElement("ul");
+          ul.className = "participants-list";
+
+          const initials = (full) =>
+            full
+              .split(" ")
+              .map((n) => (n ? n[0] : ""))
+              .slice(0, 2)
+              .join("")
+              .toUpperCase();
+
+          details.participants.forEach((p) => {
+            const li = document.createElement("li");
+            const badge = document.createElement("span");
+            badge.className = "participant-badge";
+            badge.textContent = initials(p);
+            li.appendChild(badge);
+            li.appendChild(document.createTextNode(p));
+            const deleteIcon = document.createElement("span");
+            deleteIcon.textContent = "X";
+            deleteIcon.className = "delete-icon";
+            deleteIcon.onclick = async () => {
+              const response = await fetch(`/activities/${encodeURIComponent(name)}/unregister?email=${encodeURIComponent(p)}`, { method: "DELETE" });
+              if (response.ok) {
+                // Refresh activities to reflect removal
+                fetchActivities();
+              }
+            };
+            li.appendChild(deleteIcon);
+            ul.appendChild(li);
+          });
+
+          participantsDiv.appendChild(ul);
+        }
+
+        activityCard.appendChild(participantsDiv);
 
         activitiesList.appendChild(activityCard);
 
@@ -62,6 +114,8 @@ document.addEventListener("DOMContentLoaded", () => {
         messageDiv.textContent = result.message;
         messageDiv.className = "success";
         signupForm.reset();
+        // Refresh activities to show the newly registered participant
+        fetchActivities();
       } else {
         messageDiv.textContent = result.detail || "An error occurred";
         messageDiv.className = "error";
