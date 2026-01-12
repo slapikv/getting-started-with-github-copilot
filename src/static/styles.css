@@ -1,3 +1,14 @@
+/* Hide bullet points in participants list */
+ul.participants-list {
+  list-style-type: none;
+  padding: 0;
+}
+/* Add styles for delete icon */
+.delete-icon {
+  cursor: pointer;
+  color: red;
+  margin-left: 10px;
+}
 * {
   box-sizing: border-box;
   margin: 0;

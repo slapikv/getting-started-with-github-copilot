@@ -60,6 +60,17 @@ document.addEventListener("DOMContentLoaded", () => {
             badge.textContent = initials(p);
             li.appendChild(badge);
             li.appendChild(document.createTextNode(p));
+            const deleteIcon = document.createElement("span");
+            deleteIcon.textContent = "X";
+            deleteIcon.className = "delete-icon";
+            deleteIcon.onclick = async () => {
+              const response = await fetch(`/activities/${encodeURIComponent(name)}/unregister?email=${encodeURIComponent(p)}`, { method: "DELETE" });
+              if (response.ok) {
+                // Refresh activities to reflect removal
+                fetchActivities();
+              }
+            };
+            li.appendChild(deleteIcon);
             ul.appendChild(li);
           });
 
@@ -103,6 +114,8 @@ document.addEventListener("DOMContentLoaded", () => {
         messageDiv.textContent = result.message;
         messageDiv.className = "success";
         signupForm.reset();
+        // Refresh activities to show the newly registered participant
+        fetchActivities();
       } else {
         messageDiv.textContent = result.detail || "An error occurred";
         messageDiv.className = "error";
